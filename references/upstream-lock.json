@@ -1,0 +1,23 @@
+{
+  "retrieved_date": "2026-11-09",
+  "repositories": [
+    {
+      "name": "LightCompress",
+      "commit": "86f564ddb1d6548b228c67a10509a4ed7264345c",
+      "origin": "https://github.com/ModelTC/LightCompress.git",
+      "path": "references/upstream/LightCompress"
+    },
+    {
+      "name": "Olive",
+      "commit": "ea6ae28111df93a82a0b04197751a57adba9d258",
+      "origin": "https://github.com/microsoft/Olive.git",
+      "path": "references/upstream/Olive"
+    },
+    {
+      "name": "llm-compressor",
+      "commit": "18243db74dba8020bd9ba68b5f4af761d9c4d34b",
+      "origin": "https://github.com/vllm-project/llm-compressor.git",
+      "path": "references/upstream/llm-compressor"
+    }
+  ]
+}

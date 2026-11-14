@@ -1,0 +1,107 @@
+{
+  "schema_version": 2,
+  "stage": "quantization",
+  "source": "/models/source-model",
+  "mtp_policy": "preserve_original_precision",
+  "mtp_source": null,
+  "runtime": {
+    "python": "/opt/inference/bin/python",
+    "gpu": 0,
+    "max_jobs": 2
+  },
+  "server": {
+    "port": 18450,
+    "max_model_len": 32768,
+    "max_num_seqs": 4,
+    "gpu_memory_utilization": 0.9,
+    "startup_timeout_seconds": 2400
+  },
+  "minimum_memory_gib": 32,
+  "backends": {
+    "llmcompressor": {
+      "python": "/opt/quantization/bin/python",
+      "cpu_threads": 2
+    }
+  },
+  "calibration": {
+    "mode": "official",
+    "dataset": "mlabonne/open-perfectblend",
+    "revision": "af60f3c18201652a83a93f46fcfee1b646ba3df7",
+    "count": 512,
+    "max_tokens": 4096,
+    "seed": 42,
+    "raw_data": null
+  },
+  "datasets": [
+    {
+      "id": "default_quality100",
+      "path": "data/quality100.json"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "original",
+      "recipe": "original",
+      "mode": "reuse"
+    },
+    {
+      "id": "awq4",
+      "recipe": "compressor_awq4",
+      "mode": "fresh"
+    },
+    {
+      "id": "awq_gptq4",
+      "recipe": "compressor_awq_gptq4",
+      "mode": "fresh"
+    },
+    {
+      "id": "gptq4",
+      "recipe": "compressor_gptq4",
+      "mode": "fresh"
+    },
+    {
+      "id": "gptq8",
+      "recipe": "compressor_gptq8",
+      "mode": "fresh"
+    },
+    {
+      "id": "w4afp8",
+      "recipe": "compressor_w4afp8",
+      "mode": "fresh"
+    },
+    {
+      "id": "w8a8",
+      "recipe": "compressor_w8a8",
+      "mode": "fresh"
+    },
+    {
+      "id": "fp8",
+      "recipe": "compressor_fp8",
+      "mode": "fresh"
+    }
+  ],
+  "benchmark": {
+    "concurrencies": [
+      1
+    ],
+    "cache_modes": [
+      "cold",
+      "warm"
+    ],
+    "max_tokens": 128,
+    "timeout_seconds": 180,
+    "deadline_seconds": 300
+  },
+  "reference_profile": {
+    "attention": "fa2",
+    "graph": true,
+    "batched_tokens": 8192
+  },
+  "quality_gate": {
+    "max_drop_pp": 5.0,
+    "max_regressions": 3
+  },
+  "selection": {
+    "objective": "size"
+  }
+}

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PIPELINE_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPATH="$PIPELINE_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+if [[ "$#" == 0 || "${1:-}" == "menu" || "${1:-}" == "--version" || "${1:-}" == "--plain" ]]; then
+  if [[ "${1:-}" == "menu" ]]; then shift; fi
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.launcher --root "$PIPELINE_ROOT" "$@"
+fi
+if [[ "${1:-}" == "workspace" ]]; then
+  shift
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.launcher --root "$PIPELINE_ROOT" --workspace "$@"
+fi
+if [[ "${1:-}" == "jobs" ]]; then
+  shift
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.jobs --root "$PIPELINE_ROOT" "$@"
+fi
+if [[ "${1:-}" == "start" || "${1:-}" == "workflow" || "${1:-}" == --* ]]; then
+  if [[ "${1:-}" == "start" || "${1:-}" == "workflow" ]]; then shift; fi
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.workflow --root "$PIPELINE_ROOT" "$@"
+fi
+if [[ "${1:-}" == "deploy" ]]; then
+  shift
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.portable --root "$PIPELINE_ROOT" "$@"
+fi
+if [[ "${1:-}" == "accelerate" ]]; then
+  shift
+  exec "${PIPELINE_PYTHON:-python3}" -m pipeline.inference.cli --root "$PIPELINE_ROOT" "$@"
+fi
+exec "${PIPELINE_PYTHON:-python3}" -m pipeline.cli --root "$PIPELINE_ROOT" "$@"

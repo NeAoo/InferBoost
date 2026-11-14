@@ -1,0 +1,25 @@
+name: CPU tests and source package
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --require-hashes --no-deps -r requirements/terminal.lock
+      - run: python -m unittest discover -s tests -q
+      - run: ./quickstart --version
+      - run: python scripts/package_source.py --output output/inferboost-source
+      - run: python scripts/verify_package.py --root output/inferboost-source --archive output/inferboost-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: inferboost-source
+          path: output/inferboost-source.tar.gz
+          retention-days: 14

@@ -1,0 +1,53 @@
+ARG PIPELINE_IMAGE=model-pipeline:0.1.0-cu130
+FROM ${PIPELINE_IMAGE} AS application
+USER root
+ARG PRODUCT_VERSION=0.5.0-r11
+ENV VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1 INFERBOOST_DEFAULT_WORKSPACE=/workspace/inferboost-v050 PIPELINE_WORKSPACE=/workspace/inferboost-v050 PIPELINE_PYTHON=/opt/inferboost-ui/bin/python
+# Replace the application tree rather than retaining files from older releases.
+RUN rm -rf /opt/pipeline /opt/build /root/.cache /opt/inferboost-ui /opt/modelforge-ui \
+    && rm -f /usr/local/bin/model-forge /etc/profile.d/model-forge.sh \
+    && sed -i '/profile.d\/model-forge.sh/d; /profile.d\/inferboost.sh/d' /etc/bash.bashrc
+COPY requirements/terminal.lock /opt/inferboost-build/terminal.lock
+RUN /usr/local/bin/uv venv --python /opt/venv/bin/python /opt/inferboost-ui \
+    && /usr/local/bin/uv pip install --python /opt/inferboost-ui/bin/python --no-cache --require-hashes --no-deps -r /opt/inferboost-build/terminal.lock
+COPY pipeline /opt/pipeline/pipeline
+COPY scripts /opt/pipeline/scripts
+COPY configs/*.example.json /opt/pipeline/configs/
+COPY data/public100.json data/quality100.json /opt/pipeline/data/
+COPY quickstart inferboost accelerate README.md CONTRIBUTING.md CHANGELOG.md LICENSE* THIRD_PARTY_NOTICES.md /opt/pipeline/
+COPY docs /opt/pipeline/docs
+COPY image /opt/pipeline/image
+COPY requirements /opt/pipeline/requirements
+COPY references/*.json /opt/pipeline/references/
+COPY references/model-configs/qwen3.*.json /opt/pipeline/references/model-configs/
+COPY image/bootstrap.sh /usr/local/bin/quickstart
+COPY image/container-entry.sh /usr/local/bin/inferboost-container
+COPY image/welcome.sh /etc/profile.d/inferboost.sh
+RUN chmod +x /usr/local/bin/quickstart /usr/local/bin/inferboost-container /opt/pipeline/quickstart /opt/pipeline/inferboost /opt/pipeline/accelerate \
+    && chmod -R a+rX /opt/pipeline \
+    && ln -sf /usr/local/bin/quickstart /usr/local/bin/inferboost \
+    && printf '\n. /etc/profile.d/inferboost.sh\n' >> /etc/bash.bashrc \
+    && rm -rf /opt/pipeline/docs/plans /root/.cache /tmp/* \
+    && /opt/venv/bin/python /opt/pipeline/image/workspace.py manifest /opt/pipeline
+# Copy the prepared application into a shallow final stage. Repeated releases
+# must use the original runtime, not stack each release on the previous one.
+FROM ${PIPELINE_IMAGE}
+USER root
+ARG PRODUCT_VERSION=0.5.0-r11
+ENV VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1 INFERBOOST_DEFAULT_WORKSPACE=/workspace/inferboost-v050 PIPELINE_WORKSPACE=/workspace/inferboost-v050 PIPELINE_PYTHON=/opt/inferboost-ui/bin/python
+RUN rm -rf /opt/pipeline /opt/build /root/.cache /opt/inferboost-ui /opt/modelforge-ui \
+    && rm -f /usr/local/bin/model-forge /etc/profile.d/model-forge.sh \
+    && sed -i '/profile.d\/model-forge.sh/d; /profile.d\/inferboost.sh/d' /etc/bash.bashrc
+COPY --from=application /opt/pipeline /opt/pipeline
+COPY --from=application /opt/inferboost-ui /opt/inferboost-ui
+COPY --from=application /usr/local/bin/quickstart /usr/local/bin/inferboost-container /usr/local/bin/
+COPY --from=application /etc/profile.d/inferboost.sh /etc/profile.d/inferboost.sh
+RUN ln -sf /usr/local/bin/quickstart /usr/local/bin/inferboost \
+    && printf '\n. /etc/profile.d/inferboost.sh\n' >> /etc/bash.bashrc
+LABEL org.opencontainers.image.title="InferBoost" \
+      org.opencontainers.image.description="Interactive LLM quantization, measured inference tuning and portable deployment" \
+      org.opencontainers.image.version="${PRODUCT_VERSION}" \
+      io.inferboost.variant="cli"
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/inferboost-container"]
+CMD []

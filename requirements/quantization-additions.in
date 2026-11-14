@@ -1,0 +1,14 @@
+llmcompressor==0.15.0
+compressed-tensors==0.20.1
+auto-round==0.15.1
+accelerate==1.15.0
+datasets==5.0.0
+pyarrow==24.0.0
+pandas==3.0.5
+multiprocess==0.70.19
+xxhash==3.6.0
+huggingface-hub==1.33.0
+fsspec==2026.4.0
+python-dateutil==2.9.0.post0
+six==1.17.0
+tzdata==2025.2

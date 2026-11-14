@@ -1,0 +1,25 @@
+ARG INFERBOOST_IMAGE=inferboost:0.5.0-cu130
+FROM ${INFERBOOST_IMAGE}
+USER root
+ARG PLATFORM_PIP_INDEX_URL=https://pypi.org/simple
+ENV SHELL=/bin/bash NB_USER=jovyan LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    PIP_INDEX_URL=${PLATFORM_PIP_INDEX_URL} \
+    INFERBOOST_DEFAULT_WORKSPACE=/home/jovyan/work/inferboost-v050 PIPELINE_WORKSPACE=/home/jovyan/work/inferboost-v050
+RUN useradd -ms /bin/bash jovyan \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && printf '%s\n' 'LANG=en_US.UTF-8' 'LC_TIME=en_DK.UTF-8' >> /etc/default/locale
+# This is a named local BuildKit context; see docs/installation.md.
+RUN --mount=from=linghui-assets,target=/mnt/linghui-assets,readonly \
+    /opt/venv/bin/python /opt/pipeline/image/install_linghui_assets.py /mnt/linghui-assets \
+    && chown -R jovyan:jovyan /opt/inferboost-vscode-extensions \
+    && rm -rf /root/.cache /root/.local/share/code-server /root/.config/code-server /tmp/*
+COPY image/linghui-entry.sh /usr/local/bin/inferboost-linghui
+RUN chmod +x /usr/local/bin/inferboost-linghui
+LABEL io.inferboost.variant="linghui-vscode"
+USER jovyan
+ENV HOME=/home/jovyan
+WORKDIR /home/jovyan
+EXPOSE 5000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s CMD curl --fail --silent http://127.0.0.1:5000/healthz || exit 1
+ENTRYPOINT ["/usr/local/bin/inferboost-linghui"]
+CMD []

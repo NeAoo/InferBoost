@@ -1,0 +1,22 @@
+# CPU contracts and clean source distribution only; no GPU jobs or publishing.
+image: python:3.11-slim
+
+stages:
+  - verify
+
+cpu-and-package:
+  stage: verify
+  variables:
+    PYTHONDONTWRITEBYTECODE: "1"
+  script:
+    - python -m pip install --require-hashes --no-deps -r requirements/terminal.lock
+    - python -m unittest discover -s tests -q
+    - ./quickstart --version
+    - python scripts/package_source.py --output output/inferboost-source
+    - python scripts/verify_package.py --root output/inferboost-source
+  artifacts:
+    when: on_success
+    expire_in: 7 days
+    paths:
+      - output/inferboost-source.tar.gz
+      - output/inferboost-source/source-manifest.json

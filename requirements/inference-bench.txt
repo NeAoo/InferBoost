@@ -1,0 +1,7 @@
+# Minimal extra dependencies used by the native vLLM 0.33 sweep.
+# The inference runtime already provides NumPy (>=1.23.2 for Python 3.11).
+pandas==2.3.3
+python-dateutil==2.9.0.post0
+pytz==2025.2
+tzdata==2025.2
+six==1.17.0

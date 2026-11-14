@@ -1,0 +1,57 @@
+{
+  "checked_date": "2026-11-10",
+  "new_quantization_backend": "llmcompressor",
+  "models": [
+    {
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "config_url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/resolve/main/config.json",
+      "snapshot": "references/model-configs/qwen3.6-35b-a3b.json",
+      "sha256": "93a4693fa9d8392fbfccd4b3c9873f4bfdcb14fdede978b123d07d19675efe99",
+      "model_type": "qwen3_5_moe",
+      "architectures": [
+        "Qwen3_5MoeForConditionalGeneration"
+      ],
+      "verification": "official_config_only_not_full_model_gpu_test"
+    },
+    {
+      "model": "Qwen/Qwen3.8-27B",
+      "config_url": "https://huggingface.co/Qwen/Qwen3.8-27B/resolve/main/config.json",
+      "snapshot": "references/model-configs/qwen3.8-27b.json",
+      "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab",
+      "model_type": "qwen3_5",
+      "architectures": [
+        "Qwen3_5ForConditionalGeneration"
+      ],
+      "verification": "official_config_only_not_full_model_gpu_test"
+    },
+    {
+      "model": "Qwen/Qwen3.8-2.4T-A95B",
+      "config_url": "https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B/resolve/main/config.json",
+      "snapshot": "references/model-configs/qwen3.8-2.4t-a95b.json",
+      "sha256": "4e3819548967e319ab435d044a3a331dbe3b078590ce822e9d74b79430533987",
+      "model_type": "qwen3_5_moe_text",
+      "architectures": [
+        "Qwen3_5MoeForCausalLM"
+      ],
+      "verification": "official_config_only_not_full_model_gpu_test"
+    }
+  ],
+  "qwen3.7": {
+    "status": "proprietary_api_no_official_open_weights_found",
+    "source": "https://qwen.ai/blog?id=qwen3.7",
+    "official_hub_query": "https://huggingface.co/api/models?author=Qwen&search=Qwen3.7&limit=50",
+    "official_hub_matches": 0
+  },
+  "upstream_examples": {
+    "Qwen/Qwen3.6-35B-A3B": "https://github.com/vllm-project/llm-compressor/blob/main/examples/quantization_w4a4_fp4/qwen3_6_example.py",
+    "Qwen/Qwen3.8-27B": "https://github.com/vllm-project/llm-compressor/blob/main/examples/quantization_w4a16/qwen3_8_gptq_awq_example.py",
+    "Qwen/Qwen3.8-2.4T-A95B": "https://github.com/vllm-project/llm-compressor/blob/main/examples/quantizing_moe/qwen_3_8_example.py"
+  },
+  "local_runtime_check": {
+    "transformers": "5.20.2",
+    "model_class_import_available": true,
+    "scope": "config_parsing_and_model_class_import_only",
+    "weights_loaded": false,
+    "quantization_run": false
+  }
+}

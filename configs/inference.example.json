@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "python": "/opt/venv/bin/python",
+    "gpu": 0,
+    "max_jobs": 2,
+    "environment": {}
+  },
+  "server": {
+    "port": 18550,
+    "max_model_len": 32768,
+    "max_num_seqs": 4,
+    "gpu_memory_utilization": 0.9,
+    "startup_timeout_seconds": 2400
+  },
+  "benchmark": {
+    "dataset": "data/public100.json",
+    "max_tokens": 256,
+    "timeout_seconds": 300,
+    "deadline_seconds": 600
+  },
+  "search": {
+    "strategy": "staged",
+    "attention": [
+      "fa2",
+      "fa3",
+      "flashinfer"
+    ],
+    "kernels": [
+      "marlin",
+      "auto",
+      "humming"
+    ],
+    "graphs": [
+      "none",
+      "piecewise",
+      "full"
+    ],
+    "budgets": [
+      2048,
+      4096,
+      8192
+    ],
+    "mtp_depths": [
+      0,
+      1,
+      2
+    ],
+    "screening_samples": 20,
+    "finalists": 2,
+    "repeats": 3,
+    "max_trials": 24,
+    "objective_cache": "warm"
+  },
+  "quality": {
+    "dataset": "data/quality100.json"
+  }
+}

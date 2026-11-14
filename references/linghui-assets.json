@@ -1,0 +1,14 @@
+{
+  "source": "Platform-provided online development assets; obtain from your platform administrator.",
+  "assets": [
+    {
+      "file": "code-server_4.14.1_amd64.deb",
+      "sha256": "ee3871c0d441a21da9b199820c105425739892572a6ddd1b9a83bdd44cac8ebb"
+    },
+    {
+      "file": "vscode-ext.tar.gz",
+      "sha256": "75e80633466955f9fc35bc1c35de9968daa7c03825ba2d13f6d3de82daea3f40"
+    }
+  ],
+  "integrity_scope": "Expected asset checksums for this adapter version; verify against your platform specification."
+}
