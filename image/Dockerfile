@@ -1,6 +1,6 @@
 # Clean distribution: copy selected dependencies, never inherit the runtime's
 # previous application layers, home directories or experiment history.
-ARG RUNTIME_IMAGE=inferboost:0.5.0-cu130-r10
+ARG RUNTIME_IMAGE=ghcr.io/neaoo/inferboost:0.5.0-cu130-r11
 FROM ${RUNTIME_IMAGE} AS tested-runtime
 FROM ubuntu:22.04@sha256:8a2321a92b438238f93b4346fff61bc4259c99fdd4d9b52ee86f153fee0c344f
 USER root

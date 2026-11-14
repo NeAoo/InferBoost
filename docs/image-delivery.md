@@ -82,3 +82,16 @@ macOS 使用 `shasum -a 256`。也可直接把本地镜像 tag / push 到选定�
 
 
 运行镜像不包含`tests/`、`runs/`、`jobs/`、用户模型或下载缓存。完整CPU维护测试从干净源码包运行；镜像测试可把测试源码作为只读挂载或临时复制到一次性测试容器，不能误认为运行镜像自带测试目录。应用文件以镜像`image-source.json`与对应源码文件逐一核对。领慧派生构建见[平台说明](platforms/linghui.md)。
+
+## 使用公开运行时重建应用
+
+GHCR 发布完成后，可直接使用发布镜像中的固定运行依赖重建本仓库应用：
+
+```bash
+docker buildx build --platform linux/amd64 --load \
+  --build-arg RUNTIME_IMAGE=ghcr.io/neaoo/inferboost:0.5.0-cu130-r11 \
+  --build-arg PRODUCT_VERSION=0.5.0-r11 \
+  -f image/Dockerfile -t inferboost:0.5.0-cu130-r11 .
+```
+
+构建从干净 Ubuntu 系统层开始，只复制指定的 Python / CUDA 依赖目录，再放入本仓库应用；不继承源镜像的历史应用层。首次发布由维护者提供已验收的本地运行时作为 `RUNTIME_IMAGE`；用户之后可以使用公开镜像。此过程重建应用分发，不是从上游源码重新编译全部原生依赖。
