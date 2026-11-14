@@ -32,7 +32,7 @@ COPY pipeline /opt/pipeline/pipeline
 COPY scripts /opt/pipeline/scripts
 COPY configs/*.example.json /opt/pipeline/configs/
 COPY data/public100.json data/quality100.json /opt/pipeline/data/
-COPY quickstart inferboost accelerate README.md CONTRIBUTING.md CHANGELOG.md LICENSE* THIRD_PARTY_NOTICES.md /opt/pipeline/
+COPY quickstart inferboost accelerate README.md README.en.md CONTRIBUTING.md CHANGELOG.md LICENSE* THIRD_PARTY_NOTICES.md /opt/pipeline/
 COPY docs /opt/pipeline/docs
 COPY image /opt/pipeline/image
 COPY requirements /opt/pipeline/requirements

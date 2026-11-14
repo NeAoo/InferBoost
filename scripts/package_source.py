@@ -15,7 +15,7 @@ def package(root, output):
     for directory in ['pipeline','scripts','tests','docs','requirements','image','installer','.github/workflows']:
         files.extend(p for p in (root/directory).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
     files.extend(root/name for name in [
-        'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE-NOTICE.md',
+        'README.md', 'README.en.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE-NOTICE.md',
         'THIRD_PARTY_NOTICES.md', 'quickstart', 'inferboost', 'install.sh', 'accelerate',
         '.gitignore', '.dockerignore', '.gitlab-ci.yml',
     ])

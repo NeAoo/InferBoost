@@ -1,10 +1,12 @@
 # InferBoost · 模型量化与推理加速
 
+**简体中文** | [English](README.en.md)
+
 **从一个模型目录开始，完成量化、效果对比、推理调优和部署。**
 
 InferBoost 为可直接加载的 Hugging Face 模型提供两阶段工作流：先比较量化模型，再为选定模型测试推理配置。已有量化模型可以直接进入第二阶段。每一步都有终端摘要和 Markdown / HTML 报告，推荐供参考，最终由使用者选择。
 
-[快速开始](#快速开始) · [量化配方](#量化配方) · [输出与部署](#输出与部署) · [安装](docs/installation.md) · [配置](docs/configuration.md) · [开发](CONTRIBUTING.md)
+[快速开始](#快速开始) · [镜像与运行环境](#镜像与运行环境) · [量化配方](#量化配方) · [输出与部署](#输出与部署) · [安装](docs/installation.md) · [配置](docs/configuration.md) · [开发](CONTRIBUTING.md)
 
 ## 默认加速设置
 
@@ -29,24 +31,66 @@ InferBoost 为可直接加载的 Hugging Face 模型提供两阶段工作流：�
 
 候选按模型结构、GPU 能力和运行时依赖过滤。不兼容项显示原因，失败项保留日志。搜索结果适用于所测模型、硬件和负载，不保证全局最优。[流程与模块地图](docs/architecture.md)
 
+## 镜像与运行环境
+
+| 项目 | 说明 |
+| --- | --- |
+| 镜像地址 | `ghcr.io/neaoo/inferboost:0.5.0-cu130-r11` |
+| 镜像包 | [GitHub Container Registry](https://github.com/users/NeAoo/packages/container/package/inferboost) |
+| 版本与摘要 | [0.5.0-r11 发布记录](docs/releases/0.5.0-r11.md)，包含完整 digest、构建提交及验证范围 |
+| 系统与 GPU | Linux amd64、NVIDIA SM80 及以上；FP8 配方另有硬件条件；V100 / SM70 不支持 |
+| 使用 Docker 的主机 | 已安装 NVIDIA 驱动、Docker 与 NVIDIA Container Toolkit |
+| 镜像内主要组件 | CUDA 13.0、vLLM 0.33.0、LLM Compressor 0.15.0；量化、推理、终端 UI 使用隔离 Python 环境 |
+| 自己准备的内容 | 可直接加载的完整模型、可选且匹配的 MTP 草稿、可写持久工作目录 |
+
+镜像已上传并核对摘要，**当前匿名拉取仍未通过验证**。公开可见性开启前，需使用有该包读取权限的 GHCR 账号登录；最新状态以发布记录为准。模型权重不在镜像中，无需在宿主另装 Torch / vLLM。
+
+首次量化需要联网读取固定版本的公开校准数据，也支持提前准备离线快照；已有量化模型直接进入加速阶段时不需要校准下载。推理固定 **TP=1**，原模型和每个候选都需能单卡加载。磁盘应容纳所有候选与中间产物，内存和显存按模型及负载配置。[资源要求](docs/configuration.md) · [离线校准](docs/data-and-evaluation.md#离线校准)
+
 ## 快速开始
+
+| 你所在的环境 | 从哪里开始 |
+| --- | --- |
+| Linux GPU 主机，有 Docker 权限 | 按下面三步拉取镜像、创建容器、打开菜单 |
+| 云平台已用此镜像创建实例 | 直接看[已进入 InferBoost 镜像](#已进入-inferboost-镜像)，运行 `quickstart` |
+| 需要修改代码 | 看[源码开发](#gpu-服务器或源码开发)，复用镜像里的运行环境 |
 
 ### Docker 快速启动
 
-需要 Linux amd64、NVIDIA SM80 及以上 GPU，以及 Docker / NVIDIA Container Toolkit。模型与 MTP 权重由使用者准备。首次量化需要联网读取固定版本的公开校准数据，也可预先准备离线校准数据；已有量化模型直接加速无需校准下载。
+**1. 拉取固定版本。**
 
-以下镜像地址以 [发布说明](docs/releases/0.5.0-r11.md) 的上传及匿名拉取验证状态为准：
+```bash
+docker pull --platform linux/amd64 ghcr.io/neaoo/inferboost:0.5.0-cu130-r11
+```
+
+**2. 创建容器并挂载模型与工作目录。** 将 `/absolute/models` 替换为已有模型的宿主目录，将 `/absolute/persistent-work` 替换为自己的可写持久目录：
 
 ```bash
 docker run -d --name inferboost --init --gpus all --shm-size=16g \
   -v /absolute/models:/models:ro \
   -v /absolute/persistent-work:/workspace \
   ghcr.io/neaoo/inferboost:0.5.0-cu130-r11 idle
+```
 
+**3. 打开交互菜单。**
+
+```bash
 docker exec -it inferboost quickstart
 ```
 
-将两个宿主路径替换为自己的模型目录和工作目录。向导内填写 `/models/模型子目录`；MTP 可填写 `/models/草稿子目录`，没有则留空。无需先安装主机端 Torch / vLLM。
+向导填写的是**容器内路径**：
+
+| 内容 | 宿主路径示例 | 向导内填写 |
+| --- | --- | --- |
+| 主模型 | `/absolute/models/source` | `/models/source` |
+| MTP 草稿（可选） | `/absolute/models/draft` | `/models/draft`；没有则留空 |
+| 工作目录 | `/absolute/persistent-work` 下的产物 | 默认 `/workspace/inferboost-v050`，也可在向导中选择 |
+
+主模型目录应包含 `config.json`、模型权重和 tokenizer 文件。本项目接收完整模型，不承担训练或 LoRA 合并。自定义数据若在其他目录，可在创建容器时另加 `-v /absolute/test-data:/data:ro`，之后使用 `/data/tests.jsonl`。
+
+再次连接时重复 `docker exec -it inferboost quickstart`；容器已停止则先运行 `docker start inferboost`。新版本请使用新的工作目录，原任务与权重保留在旧目录。
+
+如需从宿主调用最终部署 API，在创建容器时给 `docker run` 增加 `-p 127.0.0.1:9001:9001`。容器就绪后先运行量化与调优；只有启动[选定部署包](#输出与部署)才会持续提供模型服务。
 
 ### 已进入 InferBoost 镜像
 
@@ -91,7 +135,14 @@ InferBoost · 模型量化与推理加速
 - **云端开发实例**：导入镜像并挂载目录，在容器运行 `quickstart`。[首次运行指南](docs/sandbox-quickstart.md)
 - **源码开发**：将仓库挂载到配套运行时，运行 `inferboost dev /absolute/source`。[开发指南](CONTRIBUTING.md)
 
-当前运行时面向 Linux amd64、NVIDIA SM80 及以上 GPU；FP8 配方要求更高的计算能力。推理固定 **TP=1**，原模型与候选需分别能在单卡加载；多卡用于分担量化任务。CPU 内存、磁盘、上下文与并发按实际模型配置，见 [资源与配置](docs/configuration.md)。项目接受完整模型，不承担训练或 LoRA 合并。
+只使用源码时，也需要匹配的量化与推理运行时。推荐先使用 [Docker 安装器](docs/installation.md#docker一键安装)，再将克隆的源码交给开发入口：
+
+```bash
+git clone https://github.com/NeAoo/InferBoost.git
+inferboost dev /absolute/InferBoost
+```
+
+上面的 `inferboost` 是宿主安装器安装的启动命令。若已经位于配套镜像内，在克隆的仓库目录执行 `PIPELINE_PYTHON=/opt/inferboost-ui/bin/python ./quickstart` 即可。轻量 UI 的 `pip install` 不能替代 CUDA / vLLM 运行环境。
 
 ### 命令行
 
@@ -165,7 +216,7 @@ scripts/        后端执行、校准准备、打包和校验
 configs/        通用配置示例
 image/          镜像构建与工作区初始化
 requirements/   组件依赖与哈希锁
-data/           默认校准样本、质量题和性能请求
+data/           默认质量题与性能请求；校准数据按任务准备
 tests/          轻量维护测试
 docs/           使用、架构和维护文档
 ```
@@ -178,6 +229,8 @@ docs/           使用、架构和维护文档
 | 终端、续跑、结果查看 | [交互](docs/terminal-interaction.md) · [CLI](docs/cli-reference.md) |
 | 领慧在线开发适配 | [平台说明](docs/platforms/linghui.md) |
 | 镜像构建、源码同步与验收 | [镜像交付](docs/image-delivery.md) · [发布检查](docs/release-readiness.md) |
+
+README 默认使用中文，顶部可切换 [English](README.en.md)。语言切换作用于文档；当前终端交互与详细指南主要使用中文。
 
 源码、镜像和已初始化的工作区分别管理版本。Git 提交或推送不会更新已构建镜像；每次镜像发布记录对应源码和不可变摘要。运行结果、缓存、私有配置和用户权重不进入共享仓库。
 
